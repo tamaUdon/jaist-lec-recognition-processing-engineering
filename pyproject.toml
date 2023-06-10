@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "jaist-lecs"
+version = "0.1.0"
+description = ""
+authors = ["tamaUdon <sakurayuki603@gmail.com>"]
+readme = "README.md"
+packages = [{include = "jaist_lecs"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pandas = "^2.0.2"
+numpy = "^1.24.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
