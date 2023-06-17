@@ -1,55 +1,62 @@
-# ref. JAIST 23'認識処理工学特論 lec.2 レポートプログラム
-# Pythonによるパーセプトロン学習プログラム例 (重み固定・変動増分手法)
+### 検証環境: 
+### macOS Montray ver.12.2.1
+### python 3.11.3
+### poetry 1.4.2
 
-import numpy as np
+### Install: 
+### $ poetry install
+### $ poetry run python lec2_report2.py
 
-X = np.array([1.2, 0.2, -0.2, -0.5, -1.0, -1.5]) # training data = トレーニンづデータ
-y = np.array([1, 1, 1, 2, 2, 2]).T # class of training data = トレーニングデータのクラス
-w = 0.5 # 固定値. initial weighting coefficients = 重みづけ係数, クラスごとに設定する
-r = np.array([0.5, 0.5]).T # 変動値. coeficient of training = トレーニングの初期係数, rho
-flag = True # True/False
-n = np.shape(X)[0] # 行数 = 6
-d = np.ndim(X) # 次元数 = 1
-X = np.stack([np.ones(n), X], 1) # rの行数を追加する
+import pandas as pd
+import time
 
-print(f"X={X}")
-# X= 
-# [[ 1.   1.2]
-#  [ 1.   0.2]
-#  [ 1.  -0.2]
-#  [ 1.  -0.5]
-#  [ 1.  -1. ]
-#  [ 1.  -1.5]]
+from scipy import stats
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.datasets import load_digits
 
-# print(f"[n, d]={[n, d]}")
-# [n, d]=[6, 1]
+### tuning p by grid search + k-fold ###
+def fine_tune_grid_search_and_k_fold():
+    digits = load_digits()
+    svm = SVC()
+    # svm = SVC(kernel='rbf')
+    # kf = KFold(n_splits=4, shuffle=True, random_state=42)
+    params = {"C":[0.1, 1, 10], "gamma":[0.001, 0.01, 0.1]}
+    clf = GridSearchCV(svm, params, cv=5, iid=True,
+                       return_train_score=False)
+    t1 = time.time()
+    clf.fit(digits.data, digits.target)
+    t2 = time.time()
+    print("{:.2f} 秒かかった".format(t2 - t1))
+    result_df = pd.DataFrame(clf.cv_results_)
+    result_df.sort_values(
+        by="rank_test_score", inplace=True)
+    print(result_df[["rank_test_score", 
+                     "params", 
+                     "mean_test_score"]])
 
-m = 0
+### tuning p by random search + k-fold ###
 
-while flag:
-    flag = False
-    m += 1
-    print(f"step={m}")
+def fine_tune_random_search_and_k_fold():
+    digits = load_digits()
+    svm = SVC()
+    params = {"C":stats.expon(scale=1), 
+              "gamma":stats.expon(scale=0.01)}
+    clf = RandomizedSearchCV(svm, params, cv=5, iid=True,
+                             return_train_score=False, n_iter=30)
+    t1 = time.time()
+    clf.fit(digits.data, digits.target)
+    t2 = time.time()
+    print("{:.2f}秒かかった".format(t2 - t1))
+    result_df = pd.DataFrame(clf.cv_results_)
+    result_df.sort_values(
+        by="rank_test_score", inplace=True)
+    print(result_df[["rank_test_score", 
+                     "param_C",
+                     "param_gamma",
+                     "mean_test_score"]])
 
-    for i in range(n):
-        x = X[i,:].T # Xのi番目の行の全ての要素を取得し転置
-        print(f"x={x}")
-        # g = w.T * x # w=重み係数を転置しxを乗算
-        g = r.T * x # r=重み係数の移動量にxを乗算
-        print(f"r={r}")
-        print(f"weighting coefficients={r.T}")
-        print(f"g={g}")
-
-        if (y[i] == 1) and np.sum(g)<0: # クラス1かどうか判別
-            # w = w + r*x # トレーニング係数rにx(誤差)を乗算したものを重みwに加算し, wを更新する
-            r = r + w*x
-            flag = True # 学習継続
-            print(f"updated r={r}")
-        elif (y[i] == 2) and np.sum(g)>0:# クラス2かどうか判別
-            # w = w - r*x
-            r = r - w*x
-            flag = True
-            print(f"updated r={r}")
-print(f"Results: r0={r[0]}, r1={r[1]}")
-
-
+if __name__ == "__main__":
+    fine_tune_grid_search_and_k_fold()
+    #fine_tune_random_search_and_k_fold
