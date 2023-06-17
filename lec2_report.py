@@ -169,6 +169,6 @@ def fine_tune_random_search_and_k_fold():
 
 if __name__ == "__main__":
     svm_with_no_fine_tune_and_split_direct()
-    #svm_with_no_fine_tune_and_split_random()
-    #fine_tune_grid_search_and_k_fold()
-    #fine_tune_random_search_and_k_fold()
+    svm_with_no_fine_tune_and_split_random()
+    fine_tune_grid_search_and_k_fold()
+    fine_tune_random_search_and_k_fold()
