@@ -48,5 +48,6 @@ while flag:
             flag = True
             print(f"updated w={w}")
 print(f"Results: w0={w[0]}, w1={w[1]}")
+# Results: w0=0.5, w1=1.1
 
 
